@@ -1,0 +1,2 @@
+# ShengBot
+Private Discord bot
