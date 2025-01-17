@@ -1,4 +1,4 @@
-import { REST, Routes, ApplicationCommandOptionType } from 'discord.js';
+import { REST, Routes } from 'discord.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
@@ -8,7 +8,6 @@ const commands = [];
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const commandsFolder = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsFolder).filter(file => file.endsWith('.js'));
 
@@ -25,9 +24,7 @@ for(const file of commandFiles){
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
-/*
-    Load slash commands to Discord
-*/
+// Deploy slash commands to Discord
 (async () => {
 	try {
 		console.log(`Started refreshing ${commands.length} application (/) commands.`);
