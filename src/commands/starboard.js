@@ -1,26 +1,45 @@
-import { SlashCommandBuilder, MessageFlags, Collection } from "discord.js";
+import { SlashCommandBuilder, MessageFlags, Collection, ChannelType } from "discord.js";
 
-const enable = (interaction) => {
+const serverStarboards = new Collection();
 
+const enable = async (interaction) => {
+    const channel = interaction.options.getChannel("channel")
+    const guild = interaction.guild;
+
+    if(serverStarboards.get(guild.id)){
+        await interaction.reply({ content: `${guild.name} already has a starboard. Use 'starboard set' to change the output channel.`, flags: MessageFlags.Ephemeral });
+        return;
+    }
+    
+    serverStarboards.set(guild.id, channel.id);
+
+    try {
+        await interaction.reply({ content: `${channel.name} will be the starboard for ${guild.name}`, flags: MessageFlags.Ephemeral });
+    }
+    catch (error){
+        console.log(channel);
+        console.log(error);
+        await interaction.reply({ content: `An internal error has occured.`, flags: MessageFlags.Ephemeral });
+    }
 }
 
-const disable = (interaction) => {
+const disable = async (interaction) => {
     
 }
 
-const set = (interaction) => {
+const set = async (interaction) => {
     
 }
 
-const min = (interaction) => {
+const min = async (interaction) => {
     
 }
 
 const subCommands = new Collection([
-    ("enable", enable),
-    ("disable", disable),
-    ("set", set),
-    ("min", min)
+    ["enable", enable],
+    ["disable", disable],
+    ["set", set],
+    ["min", min]
 ]);
 
 export default {
@@ -31,7 +50,12 @@ export default {
         subCommand 
             .setName("enable")
             .setDescription("Enables the starboard output to a channel.")
-            .addStringOption(option => option.setName("channel-id").setDescription("Channel ID for starboard output.").setRequired(true))
+            .addChannelOption(option => 
+                option
+                .setName("channel")
+                .setDescription("Channel for starboard output.")
+                .setRequired(true)
+                .addChannelTypes(ChannelType.GuildText))
     )
     .addSubcommand(subCommand => 
         subCommand 
@@ -52,8 +76,9 @@ export default {
     )
     ,
     async execute(interaction){
-        const subCommand_execute = interaction.options.getSubcommand()
-        await interaction.reply({ content: "WIP!", flags: MessageFlags.Ephemeral });
+        const subCommandName = interaction.options.getSubcommand()
+        const subCommandExecute = subCommands.get(subCommandName);
+        subCommandExecute(interaction);
     },
 }
 

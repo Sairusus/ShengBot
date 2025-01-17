@@ -11,7 +11,8 @@
     "scripts": {
         "start": "node src/app.js",
         "deploy_test": "node src/utils/deploy_to_test.js",
-        "deploy_global": "node src/utils/deploy_to_global.js"
+        "deploy_global": "node src/utils/deploy_to_global.js",
+        "delete": "node src/utils/delete_commands.js"
     },
     "dependencies": {
         "discord.js": "^14.15.3",

@@ -17,6 +17,7 @@ export default {
             await command.execute(interaction);
         }
         catch(error){
+            console.log(error);
             if (interaction.replied || interaction.deferred) {
                 await interaction.followUp({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
             } else {
