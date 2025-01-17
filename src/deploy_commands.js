@@ -1,19 +1,11 @@
 import { REST, Routes } from 'discord.js';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import { pathToFileURL, fileURLToPath } from 'node:url';
+import { get_dir_fileUrls } from './utils/find_dir_files.js';
 import 'dotenv/config'
 
 const commands = [];
+const commandFilesUrls = await get_dir_fileUrls(import.meta.url, 'commands');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const commandsFolder = path.join(__dirname, 'commands');
-const commandFiles = fs.readdirSync(commandsFolder).filter(file => file.endsWith('.js'));
-
-for(const file of commandFiles){
-    const filePath = path.join(commandsFolder, file);
-    const fileUrl = pathToFileURL(filePath).href;
+for(const fileUrl of commandFilesUrls){
     const command = await import(fileUrl).then(mod => mod.default || mod);
     if ('data' in command && 'execute' in command) {
 		commands.push(command.data.toJSON());

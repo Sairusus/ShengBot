@@ -1,4 +1,27 @@
-import { SlashCommandBuilder, MessageFlags } from "discord.js";
+import { SlashCommandBuilder, MessageFlags, Collection } from "discord.js";
+
+const enable = (interaction) => {
+
+}
+
+const disable = (interaction) => {
+    
+}
+
+const set = (interaction) => {
+    
+}
+
+const min = (interaction) => {
+    
+}
+
+const subCommands = new Collection([
+    ("enable", enable),
+    ("disable", disable),
+    ("set", set),
+    ("min", min)
+]);
 
 export default {
     data: new SlashCommandBuilder()
@@ -29,6 +52,8 @@ export default {
     )
     ,
     async execute(interaction){
+        const subCommand_execute = interaction.options.getSubcommand()
         await interaction.reply({ content: "WIP!", flags: MessageFlags.Ephemeral });
     },
 }
+

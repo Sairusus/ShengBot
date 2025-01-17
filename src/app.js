@@ -1,33 +1,20 @@
-import { Client, Collection, Events, GatewayIntentBits, MessageFlags } from 'discord.js';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import { pathToFileURL, fileURLToPath } from 'node:url';
+import { Client, Collection, GatewayIntentBits } from 'discord.js';
+import { get_dir_fileUrls } from './utils/find_dir_files.js';
 import 'dotenv/config'
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMessages] });
 
-// Attaching map to client to store commands as {commandName: execute(interaction)}
+// Attaching collection to client to store commands
 client.commands = new Collection();
 
-// Grab path to this file (../ShengBot/src/app.js)
-const __filename = fileURLToPath(import.meta.url);
-// Grab path of directory (../ShengBot/src/)
-const __dirname = path.dirname(__filename);
-// ../ShengBot/src/commands
-const commandsFolder = path.join(__dirname, 'commands');
-// Return string array of .js filenames in commands folder
-const commandFiles = fs.readdirSync(commandsFolder).filter(file => file.endsWith('.js'));
+const commandFilesUrls = await get_dir_fileUrls(import.meta.url, 'commands');
 
 // Loop through each .js file
-for(const file of commandFiles){
-    // Create path to the file and change format for import()
-    const filePath = path.join(commandsFolder, file);
-    const fileUrl = pathToFileURL(filePath).href;
-
+for(const fileUrl of commandFilesUrls){
     const command = await import(fileUrl).then(mod => mod.default || mod);
 
     if('data' in command && 'execute' in command){
-        // Add command to commands map
+        // Add command to commands collection
         client.commands.set(command.data.name, command)
     }
     else {
@@ -35,32 +22,17 @@ for(const file of commandFiles){
     }
 }
 
+const eventFilesUrls = await get_dir_fileUrls(import.meta.url, 'event_handlers');
 
-// Enables listener that triggers when slash command is ran by Discord user
-client.on(Events.InteractionCreate, async interaction => {
-    if (!interaction.isChatInputCommand()) return;
+for(const eventUrl of eventFilesUrls){
+    const event = await import(eventUrl).then(mod => mod.default || mod);
 
-    // Grab command from the map, if it exists
-    const command = interaction.client.commands.get(interaction.commandName);
-    if(!command){
-        console.error(`No command matching ${interaction.commandName} was found.`);
-		return;
+    if(event.once){
+        client.once(event.name, (...args) => event.execute(...args))
     }
-
-    try{
-        await command.execute(interaction);
+    else{
+        client.on(event.name, (...args) => event.execute(...args))
     }
-    catch(error){
-        if (interaction.replied || interaction.deferred) {
-			await interaction.followUp({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
-		} else {
-			await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
-		}
-    }
-});
+}
 
-
-client.once(Events.ClientReady, readyClient => {
-    console.log(`Logged in as ${readyClient.user.tag}!`);
-});
 client.login(process.env.DISCORD_TOKEN);
