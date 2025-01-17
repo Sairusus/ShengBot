@@ -24,8 +24,9 @@ for(const file of commandFiles){
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
-// Deploy slash commands to Discord
-(async () => {
+// Deploy slash commands to Discord (only do this once whenever new commands are added or updated)
+export async function deploy_to_global(){
+	console.log("DEPLOY TO GLOBAL");
 	try {
 		console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
@@ -38,4 +39,20 @@ const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 	} catch (error) {
 		console.error(error);
 	}
-})();
+};
+
+export async function deploy_to_test_server(){
+	console.log("DEPLOY TO TEST SERVER");
+	try {
+		console.log(`Started refreshing ${commands.length} application (/) commands.`);
+
+		const data = await rest.put(
+			Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.TEST_GUILD_ID),
+			{ body: commands },
+		);
+
+		console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+	} catch (error) {
+		console.error(error);
+	}
+}

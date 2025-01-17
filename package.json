@@ -9,7 +9,9 @@
         "node": ">=18.x"
     },
     "scripts": {
-        "start": "node src/app.js"
+        "start": "node src/app.js",
+        "deploy_test": "node src/utils/deploy_to_test.js",
+        "deploy_global": "node src/utils/deploy_to_global.js"
     },
     "dependencies": {
         "discord.js": "^14.15.3",
