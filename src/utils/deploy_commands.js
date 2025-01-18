@@ -1,9 +1,15 @@
 import { REST, Routes } from 'discord.js';
-import { get_dir_fileUrls } from './utils/find_dir_files.js';
+import { fileURLToPath, pathToFileURL } from 'url';
+import { dirname } from 'path';
+import { get_dir_fileUrls } from './find_dir_files.js';
 import 'dotenv/config'
 
 const commands = [];
-const commandFilesUrls = await get_dir_fileUrls(import.meta.url, 'commands');
+
+const utilsPath = dirname(fileURLToPath(import.meta.url));
+const utilsUrl = pathToFileURL(utilsPath);
+
+const commandFilesUrls = await get_dir_fileUrls(utilsUrl, 'commands');
 
 for(const fileUrl of commandFilesUrls){
     const command = await import(fileUrl).then(mod => mod.default || mod);
