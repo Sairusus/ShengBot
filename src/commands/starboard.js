@@ -2,6 +2,7 @@ import { SlashCommandBuilder, MessageFlags, Collection, ChannelType } from "disc
 
 const serverStarboards = new Collection();
 const serverMinStars = new Collection();
+export { serverStarboards, serverMinStars };
 
 const enable = async (interaction) => {
     const channel = interaction.options.getChannel("channel")
@@ -14,13 +15,7 @@ const enable = async (interaction) => {
 
     serverStarboards.set(guild.id, channel.id);
 
-    try {
-        await interaction.reply({ content: `${channel.name} will be the starboard for ${guild.name}`, flags: MessageFlags.Ephemeral });
-    }
-    catch (error){
-        console.log(error);
-        await interaction.reply({ content: `An internal error has occured.`, flags: MessageFlags.Ephemeral });
-    }
+    await interaction.reply({ content: `${channel.name} will be the starboard for ${guild.name}`, flags: MessageFlags.Ephemeral });
 }
 
 const disable = async (interaction) => {
@@ -32,14 +27,15 @@ const disable = async (interaction) => {
 const set = async (interaction) => {
     const guild = interaction.guild;
     const channel = interaction.options.getChannel("channel");
-    serverStarboards.set((guild.id, channel.id));
-    try {
-        await interaction.reply({ content: `${channel.name} will be the starboard for ${guild.name}`, flags: MessageFlags.Ephemeral });
+
+    if(!serverStarboards.get(guild.id)){
+        await interaction.reply({ content: `Starboard is not enabled. Use 'starboard enable'.`, flags: MessageFlags.Ephemeral });
+        return;
     }
-    catch (error){
-        console.log(error);
-        await interaction.reply({ content: `An internal error has occured.`, flags: MessageFlags.Ephemeral });
-    }
+    
+    serverStarboards.set(guild.id, channel.id);
+    
+    await interaction.reply({ content: `${channel.name} will be the starboard for ${guild.name}`, flags: MessageFlags.Ephemeral });
 }
 
 const min = async (interaction) => {
@@ -51,8 +47,8 @@ const min = async (interaction) => {
         return;
     }
 
-    serverMinStars.set((guild.id, starCount));
-    await interaction.reply({ content: `${starCount} stars are now required to post in starboard.`, flags: MessageFlags.Ephemeral });
+    serverMinStars.set(guild.id, starCount);
+    await interaction.reply({ content: `${starCount} stars are now required to post in starboard.`, flags: MessageFlags.Ephemeral });    
 }
 
 const subCommands = new Collection([
@@ -102,12 +98,17 @@ export default {
                 .setName("min-stars")
                 .setDescription("Minimum stars required for starboard.")
                 .setRequired(true))
-    )
-    ,
+    ),
     async execute(interaction){
-        const subCommandName = interaction.options.getSubcommand()
-        const subCommandExecute = subCommands.get(subCommandName);
-        subCommandExecute(interaction);
+        try{
+            const subCommandName = interaction.options.getSubcommand()
+            const subCommandExecute = subCommands.get(subCommandName);
+            subCommandExecute(interaction);
+        }
+        catch (error){
+            console.log(error);
+            await interaction.reply({ content: `An internal error has occured.`, flags: MessageFlags.Ephemeral });
+        }
     },
 }
 

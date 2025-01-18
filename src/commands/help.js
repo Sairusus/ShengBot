@@ -5,9 +5,14 @@ const help_message = '```Available Commands:\n' + 'starboard enable|disable|set|
 export default {
     data: new SlashCommandBuilder()
     .setName("help")
-    .setDescription("Show available commands.")
-    ,
+    .setDescription("Show available commands."),
     async execute(interaction){
-        await interaction.reply({ content: help_message });
-    },
+        try{
+            await interaction.reply({ content: help_message });
+        }
+        catch (error){
+            console.log(error);
+            await interaction.reply({ content: `An internal error has occured.`, flags: MessageFlags.Ephemeral });
+        }
+    }
 }
